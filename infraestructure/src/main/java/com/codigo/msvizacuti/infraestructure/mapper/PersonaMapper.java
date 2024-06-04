@@ -8,10 +8,11 @@ import org.springframework.stereotype.Service;
 public class PersonaMapper {
     public static PersonaDto fromEntity(PersonaEntity entity) {
         PersonaDto dto = new PersonaDto();
-        dto.setIdPersona(entity.getId());
-        dto.setNumDocu(entity.getNumerodocumento());
-        dto.setNombre(entity.getNombre());
-        dto.setApellido(entity.getApellido());
+        dto.setIdPersona(entity.getIdPersona());
+        dto.setNumDocu(entity.getNumDocu());
+        dto.setNombres(entity.getNombres());
+        dto.setApePat(entity.getApePat());
+        dto.setApeMat(entity.getApeMat());
         dto.setEstado(entity.getEstado());
         dto.setUsuaCrea(entity.getUsuaCrea());
         dto.setDateCreate(entity.getDateCreate());
@@ -19,7 +20,6 @@ public class PersonaMapper {
         dto.setDateModif(entity.getDateModif());
         dto.setUsuaDelet(entity.getUsuaDelet());
         dto.setDateDelet(entity.getDateDelet());
-        dto.setEmpresa_id(entity.getEmpresa_id());
         return dto;
     }
 }

@@ -10,10 +10,10 @@ import java.sql.Timestamp;
 public class PersonaDto {
     private Long idPersona;
     private String numDocu;
-    private String nombre;
-    private String apellido;
+    private String nombres;
+    private String apePat;
+    private String apeMat;
     private Integer estado;
-    private Integer empresa_id;
     private String usuaCrea;
     private Timestamp dateCreate;
     private String usuaModif;

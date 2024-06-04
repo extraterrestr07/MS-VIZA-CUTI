@@ -3,6 +3,7 @@ package com.codigo.msvizacuti.domain.impl;
 import com.codigo.msvizacuti.domain.aggregates.dto.PersonaDto;
 import com.codigo.msvizacuti.domain.aggregates.request.PersonaRequest;
 import com.codigo.msvizacuti.domain.ports.in.PersonaServiceIn;
+import com.codigo.msvizacuti.domain.ports.out.PersonaServiceOut;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,28 +13,29 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class PersonaServiceImpl implements PersonaServiceIn {
+    private final PersonaServiceOut personaServiceOut;
     @Override
     public PersonaDto crearPersonaIn(PersonaRequest personaRequest) {
-        return null;
+        return personaServiceOut.crearPersonaOut(personaRequest);
     }
 
     @Override
     public Optional<PersonaDto> buscarXIdIn(Long id) {
-        return Optional.empty();
+        return personaServiceOut.buscarXIdOut(id);
     }
 
     @Override
     public List<PersonaDto> obtenerTodosIn() {
-        return List.of();
+        return personaServiceOut.obtenerTodosOut();
     }
 
     @Override
     public PersonaDto actualizarIn(Long id, PersonaRequest personaRequest) {
-        return null;
+        return personaServiceOut.actualizarOut(id, personaRequest);
     }
 
     @Override
     public PersonaDto deleteIn(Long id) {
-        return null;
+        return personaServiceOut.deleteOut(id);
     }
 }

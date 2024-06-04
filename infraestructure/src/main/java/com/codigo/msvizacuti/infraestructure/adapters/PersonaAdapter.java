@@ -1,15 +1,12 @@
 package com.codigo.msvizacuti.infraestructure.adapters;
 
 import com.codigo.msvizacuti.domain.aggregates.constants.Constant;
-import com.codigo.msvizacuti.domain.aggregates.dto.EmpresaDto;
 import com.codigo.msvizacuti.domain.aggregates.dto.PersonaDto;
 import com.codigo.msvizacuti.domain.aggregates.dto.ReniecDto;
 import com.codigo.msvizacuti.domain.aggregates.request.PersonaRequest;
 import com.codigo.msvizacuti.domain.ports.out.PersonaServiceOut;
 import com.codigo.msvizacuti.infraestructure.client.ClienteReniec;
-import com.codigo.msvizacuti.infraestructure.dao.EmpresaRepository;
 import com.codigo.msvizacuti.infraestructure.dao.PersonaRepository;
-import com.codigo.msvizacuti.infraestructure.entity.EmpresaEntity;
 import com.codigo.msvizacuti.infraestructure.entity.PersonaEntity;
 import com.codigo.msvizacuti.infraestructure.mapper.PersonaMapper;
 import com.codigo.msvizacuti.infraestructure.redis.RedisService;
@@ -26,7 +23,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PersonaAdapter implements PersonaServiceOut {
     private final PersonaRepository personaRepository;
-    private final EmpresaRepository empresaRepository;
     private final ClienteReniec clientReniec;
     private final RedisService redisService;
 
@@ -46,7 +42,7 @@ public class PersonaAdapter implements PersonaServiceOut {
             return Optional.of(personaDto);
         }else{
             PersonaDto personaDto = PersonaMapper.fromEntity(personaRepository.findById(id).get());
-            String dataForRedis = Util.convertirAStringPersona(personaDto);
+            String dataForRedis = Util.convertirAString(personaDto);
             redisService.saveInRedis(Constant.REDIS_KEY_OBTENERPERSONA+id,dataForRedis,2);
             return Optional.of(personaDto);
         }
@@ -75,23 +71,35 @@ public class PersonaAdapter implements PersonaServiceOut {
 
     @Override
     public PersonaDto deleteOut(Long id) {
-        return null;
+        Optional<PersonaEntity> datoExtraido = personaRepository.findById(id);
+        if(datoExtraido.isPresent()){
+            datoExtraido.get().setEstado(0);
+            datoExtraido.get().setUsuaDelet(Constant.USU_ADMIN);
+            datoExtraido.get().setDateDelet(getTimestamp());
+            return PersonaMapper.fromEntity(personaRepository.save(datoExtraido.get()));
+        }else {
+            throw new RuntimeException();
+        }
     }
+
+
 
     private PersonaEntity getEntity(PersonaRequest personaRequest, boolean actualiza, Long id){
         //Exec servicio
         ReniecDto reniecDto = getExecReniec(personaRequest.getNumDoc());
         PersonaEntity entity = new PersonaEntity();
-        entity.setNumerodocumento(reniecDto.getNumeroDocumento());
-        entity.setTipodocumento(reniecDto.getTipoDocumento());
-        entity.setEmail(reniecDto.getNombres()+"@gmail.com");
+        entity.setNombres(reniecDto.getNombres());
+        entity.setApePat(reniecDto.getApellidoPaterno());
+        entity.setApeMat(reniecDto.getApellidoMaterno());
+        entity.setNumDocu(reniecDto.getNumeroDocumento());
         entity.setEstado(Constant.STATUS_ACTIVE);
-        entity.setEmpresa(getEmpresa());
         //Datos de auditoria donde corresponda
 
         if(actualiza){
             //si Actualizo hago esto
-            entity.setId(id);
+            entity.setIdPersona(id);
+            entity.setUsuaCrea(personaRepository.findById(id).get().getUsuaCrea());
+            entity.setDateCreate(personaRepository.findById(id).get().getDateCreate());
             entity.setUsuaModif(Constant.USU_ADMIN);
             entity.setDateModif(getTimestamp());
 
@@ -100,15 +108,7 @@ public class PersonaAdapter implements PersonaServiceOut {
             entity.setUsuaCrea(Constant.USU_ADMIN);
             entity.setDateCreate(getTimestamp());
         }
-
         return entity;
-    }
-    private EmpresaEntity getEmpresa(Long id){
-        Optional<EmpresaEntity> empresa= empresaRepository.findById(id);
-        if(empresa.isPresent())
-            return empresa.get();
-        else
-            return null;
     }
     private ReniecDto getExecReniec(String numDoc){
         String authorization = "Bearer "+tokenReniec;
